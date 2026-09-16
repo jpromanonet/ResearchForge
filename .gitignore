@@ -1,0 +1,7 @@
+.env
+storage/exports/*
+!storage/exports/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
+storage/avatars/*
+!storage/avatars/.gitkeep

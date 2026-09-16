@@ -1,0 +1,152 @@
+/* Print / PDF report */
+
+.print-body {
+  margin: 0;
+  background: #E7E1D4;
+  color: #1A2332;
+  font-family: "Sora", system-ui, sans-serif;
+}
+
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #FAF7F1;
+  border-bottom: 2px solid #1A2332;
+}
+
+.print-toolbar-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.print-report {
+  max-width: 900px;
+  margin: 1.25rem auto 2rem;
+  background: #FAF7F1;
+  border: 2px solid #1A2332;
+  box-shadow: 6px 6px 0 rgba(26, 35, 50, 0.12);
+  padding: 1.5rem 1.75rem 2rem;
+}
+
+.print-cover h1 {
+  margin: 0.2rem 0 0.6rem;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+
+.print-summary { color: #5A6570; max-width: 40rem; }
+
+.print-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: #5A6570;
+}
+
+.print-section { margin-top: 1.75rem; page-break-inside: avoid; }
+.print-section h2 {
+  margin: 0 0 0.75rem;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 1.35rem;
+  border-bottom: 2px solid #1A2332;
+  padding-bottom: 0.25rem;
+}
+
+.print-kpi {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.print-kpi div {
+  border: 1.5px solid #1A2332;
+  padding: 0.55rem;
+  text-align: center;
+  background: #F3EFE6;
+}
+.print-kpi strong {
+  display: block;
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 1.3rem;
+}
+.print-kpi span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5A6570;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.print-note { margin: 0.75rem 0 0; color: #5A6570; font-size: 0.9rem; }
+
+.print-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.print-charts figure {
+  margin: 0;
+  border: 1.5px solid #1A2332;
+  padding: 0.5rem;
+  background: #fff;
+  page-break-inside: avoid;
+}
+.print-charts figcaption {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.35rem;
+  color: #5A6570;
+}
+.print-chart-wide { grid-column: 1 / -1; }
+.chart-svg { width: 100%; height: auto; display: block; }
+
+.print-list, .print-section ol { margin: 0; padding-left: 1.15rem; }
+.print-list li, .print-section ol li { margin-bottom: 0.55rem; }
+.print-notes { color: #5A6570; font-size: 0.85rem; margin-top: 0.2rem; }
+.print-quote {
+  margin: 0 0 0.85rem;
+  padding: 0.35rem 0 0.35rem 0.85rem;
+  border-left: 3px solid #B86B3A;
+  font-family: "Newsreader", Georgia, serif;
+}
+.print-quote footer { margin-top: 0.35rem; font-family: "Sora", sans-serif; font-size: 0.82rem; color: #5A6570; }
+.print-conclusion { margin-bottom: 1rem; }
+.print-conclusion h3 { margin: 0 0 0.35rem; font-family: "Newsreader", Georgia, serif; }
+.print-footer {
+  margin-top: 2rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #C9C2B5;
+  font-size: 0.78rem;
+  color: #5A6570;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+@media (max-width: 800px) {
+  .print-kpi { grid-template-columns: repeat(3, 1fr); }
+  .print-charts { grid-template-columns: 1fr; }
+  .print-chart-wide { grid-column: auto; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-body { background: #fff; }
+  .print-report {
+    max-width: none;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .print-section { break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  @page {
+    margin: 14mm;
+  }
+}
