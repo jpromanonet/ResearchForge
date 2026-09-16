@@ -52,18 +52,36 @@ final class UserService
 
     public static function uploadAvatar(int $id, array $file): string
     {
-        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        $err = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($err === UPLOAD_ERR_NO_FILE) {
             throw new InvalidArgumentException('Elegí una imagen.');
         }
-        if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-            throw new InvalidArgumentException('No se pudo subir la imagen.');
+        if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+            throw new InvalidArgumentException('La imagen supera el límite permitido (máx. 2 MB).');
+        }
+        if ($err !== UPLOAD_ERR_OK) {
+            throw new InvalidArgumentException('No se pudo subir la imagen (código ' . $err . ').');
         }
         if (($file['size'] ?? 0) > 2 * 1024 * 1024) {
             throw new InvalidArgumentException('La imagen no puede superar 2 MB.');
         }
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            throw new InvalidArgumentException('Archivo temporal inválido.');
+        }
 
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($file['tmp_name']) ?: '';
+        $mime = '';
+        if (class_exists('finfo')) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = (string) ($finfo->file($file['tmp_name']) ?: '');
+        }
+        if ($mime === '' && function_exists('mime_content_type')) {
+            $mime = (string) (mime_content_type($file['tmp_name']) ?: '');
+        }
+        if ($mime === '') {
+            $imageInfo = @getimagesize($file['tmp_name']);
+            $mime = is_array($imageInfo) ? (string) ($imageInfo['mime'] ?? '') : '';
+        }
+
         $map = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -74,24 +92,41 @@ final class UserService
             throw new InvalidArgumentException('Formato inválido. Usá JPG, PNG, WEBP o GIF.');
         }
 
-        $dir = dirname(__DIR__, 2) . '/storage/avatars';
-        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new RuntimeException('No se pudo crear storage/avatars.');
+        $dir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'avatars';
+        if (!is_dir($dir)) {
+            if (!@mkdir($dir, 0775, true) && !is_dir($dir)) {
+                throw new RuntimeException('No se pudo crear storage/avatars.');
+            }
+        }
+        if (!is_writable($dir)) {
+            @chmod($dir, 0775);
+        }
+        if (!is_writable($dir)) {
+            throw new RuntimeException('storage/avatars no tiene permiso de escritura en el servidor.');
         }
 
         $current = self::find($id);
         if ($current && !empty($current['avatar'])) {
-            $old = $dir . '/' . basename((string) $current['avatar']);
+            $old = $dir . DIRECTORY_SEPARATOR . basename((string) $current['avatar']);
             if (is_file($old)) {
                 @unlink($old);
             }
         }
 
         $filename = 'u' . $id . '_' . bin2hex(random_bytes(6)) . '.' . $map[$mime];
-        $dest = $dir . '/' . $filename;
-        if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            throw new RuntimeException('Error al guardar la foto.');
+        $dest = $dir . DIRECTORY_SEPARATOR . $filename;
+
+        $moved = @move_uploaded_file($file['tmp_name'], $dest);
+        if (!$moved) {
+            $moved = @copy($file['tmp_name'], $dest);
+            if ($moved) {
+                @unlink($file['tmp_name']);
+            }
         }
+        if (!$moved || !is_file($dest)) {
+            throw new RuntimeException('Error al guardar la foto. Revisá permisos de storage/avatars.');
+        }
+        @chmod($dest, 0644);
 
         $stmt = Database::pdo()->prepare('UPDATE users SET avatar = :avatar WHERE id = :id');
         $stmt->execute(['avatar' => $filename, 'id' => $id]);
