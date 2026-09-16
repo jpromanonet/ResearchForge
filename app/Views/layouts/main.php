@@ -81,7 +81,6 @@ $userName = Auth::check() ? (string) ($user['name'] ?? '') : '';
                     <span class="theme-icon-moon"><?= icon('moon', 16) ?></span>
                 </button>
                 <span class="meta-pill"><?= format_number($projectCount) ?> investigaciones</span>
-                <a class="btn btn-accent btn-sm" href="<?= e(url('/investigaciones/nueva')) ?>"><?= icon('add', 14) ?> Nueva</a>
                 <a class="topbar-profile" href="<?= e(url('/configuracion')) ?>" title="Mi perfil">
                     <span class="avatar-preview avatar-sm">
                         <?php if ($userAvatar): ?>
